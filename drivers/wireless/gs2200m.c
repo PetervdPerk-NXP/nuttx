@@ -2018,7 +2018,9 @@ static enum pkt_type_e gs2200m_send_bulk(FAR struct gs2200m_dev_s *dev,
     }
   else
     {
-      wlinfo("** addr=%s port=%d\n", inet_ntoa(msg->addr.sin_addr),
+      char inetaddr[INET_ADDRSTRLEN + 2];
+
+      wlinfo("** addr=%s port=%d\n", inet_ntoa(msg->addr.sin_addr, inetaddr),
              NTOHS(msg->addr.sin_port));
 
       /* NOTE: See 7.5.3.2 Bulk Data Handling for UDP
@@ -2027,7 +2029,8 @@ static enum pkt_type_e gs2200m_send_bulk(FAR struct gs2200m_dev_s *dev,
 
       snprintf(cmd, sizeof(cmd), "%cY%c%s:%d:%s",
                ASCII_ESC, msg->cid,
-               inet_ntoa(msg->addr.sin_addr), NTOHS(msg->addr.sin_port),
+               inet_ntoa(msg->addr.sin_addr, inetaddr),
+                         NTOHS(msg->addr.sin_port),
                digits);
     }
 

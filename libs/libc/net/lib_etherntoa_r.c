@@ -1,5 +1,5 @@
 /****************************************************************************
- * include/arpa/inet.h
+ * libs/libc/net/lib_etherntoa_r.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,51 +18,35 @@
  *
  ****************************************************************************/
 
-#ifndef __INCLUDE_ARPA_INET_H
-#define __INCLUDE_ARPA_INET_H
-
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
+#include <stdio.h>
 
-#include <sys/types.h>
-#include <stdint.h>
-#include <netinet/in.h>
+#include <net/ethernet.h>
+#include <netinet/ether.h>
 
 /****************************************************************************
- * Public Function Prototypes
+ * Public Functions
  ****************************************************************************/
 
-#ifdef __cplusplus
-#define EXTERN extern "C"
-extern "C"
+/****************************************************************************
+ * Name: ether_ntoa_r
+ *
+ * Description:
+ *   The ether_ntoa_r() function converts the Ethernet host address addr
+ *   given in network byte order to a string in standard
+ *   hex-digits-and-colons notation.
+ *
+ ****************************************************************************/
+
+FAR char *ether_ntoa_r(FAR const struct ether_addr *addr, FAR char *buf)
 {
-#else
-#define EXTERN extern
-#endif
-
-/* Functions to manipulate address representations */
-
-int         inet_aton(FAR const char *cp, FAR struct in_addr *inp);
-in_addr_t   inet_addr(FAR const char *cp);
-in_addr_t   inet_network(FAR const char *cp);
-
-FAR char   *inet_ntoa(struct in_addr in);
-FAR char   *inet_ntoa_r(struct in_addr in, FAR char *buf);
-in_addr_t   inet_lnaof(struct in_addr in);
-in_addr_t   inet_netof(struct in_addr in);
-
-struct in_addr inet_makeaddr(in_addr_t net, in_addr_t host);
-
-int         inet_pton(int af, FAR const char *src, FAR void *dst);
-const char *inet_ntop(int af, FAR const void *src, FAR char *dst,
-                      socklen_t size);
-
-#undef EXTERN
-#ifdef __cplusplus
+  sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x",
+          addr->ether_addr_octet[0], addr->ether_addr_octet[1],
+          addr->ether_addr_octet[2], addr->ether_addr_octet[3],
+          addr->ether_addr_octet[4], addr->ether_addr_octet[5]);
+  return buf;
 }
-#endif
-
-#endif /* __INCLUDE_ARPA_INET_H */
