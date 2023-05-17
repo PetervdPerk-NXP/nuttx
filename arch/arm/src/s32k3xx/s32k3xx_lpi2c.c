@@ -18,7 +18,7 @@
  *
  ****************************************************************************/
 
-/* Copyright 2022 NXP */
+/* Copyright 2022, 2023 NXP */
 
 /****************************************************************************
  * Included Files
@@ -514,6 +514,11 @@ static inline int
   if (priv->rxdma == NULL && priv->txdma == NULL)
     {
 #endif
+  /* Clear the TX and RX FIFOs */
+
+  s32k3xx_lpi2c_modifyreg(priv, S32K3XX_LPI2C_MCR_OFFSET, 0,
+                        LPI2C_MCR_RTF | LPI2C_MCR_RRF);
+
   /* Enable Interrupts when master mode */
 
   if (priv->config->mode == LPI2C_MASTER)
@@ -545,9 +550,9 @@ static inline int
    */
 #ifdef CONFIG_S32K3XX_LPI2C_DMA
     }
-
-#endif
+#else
   priv->intstate = INTSTATE_WAITING;
+#endif
   do
     {
       /* Wait until either the transfer is complete or the timeout expires */
@@ -809,11 +814,11 @@ static void s32k3xx_rxdma_callback(DMACH_HANDLE handle, void *arg, bool done,
 
   if (result != OK)
     {
-      priv->status = s32k3xx_lpi2c_getstatus(priv);
+      uint32_t status = s32k3xx_lpi2c_getstatus(priv);
 
-      if ((priv->status & LPI2C_MSR_ERROR_MASK) != 0)
+      if ((status & LPI2C_MSR_ERROR_MASK) != 0)
         {
-          i2cerr("ERROR: MSR: status: 0x0%" PRIx32 "\n", priv->status);
+          i2cerr("ERROR: MSR: status: 0x0%" PRIx32 "\n", status);
 
           s32k3xx_lpi2c_traceevent(priv, I2CEVENT_ERROR, 0);
 
@@ -825,10 +830,10 @@ static void s32k3xx_rxdma_callback(DMACH_HANDLE handle, void *arg, bool done,
           /* Clear the error */
 
           s32k3xx_lpi2c_putreg(priv, S32K3XX_LPI2C_MSR_OFFSET,
-                             (priv->status & (LPI2C_MSR_NDF |
-                                              LPI2C_MSR_ALF |
-                                              LPI2C_MSR_FEF |
-                                              LPI2C_MSR_PLTF)));
+                             (status & (LPI2C_MSR_NDF |
+                                        LPI2C_MSR_ALF |
+                                        LPI2C_MSR_FEF |
+                                        LPI2C_MSR_PLTF)));
 
           if (priv->intstate == INTSTATE_WAITING)
             {
@@ -836,6 +841,7 @@ static void s32k3xx_rxdma_callback(DMACH_HANDLE handle, void *arg, bool done,
                * and wake it up
                */
 
+              priv->status = status;
               priv->intstate = INTSTATE_DONE;
               nxsem_post(&priv->sem_isr);
             }
@@ -862,11 +868,11 @@ static void s32k3xx_txdma_callback(DMACH_HANDLE handle, void *arg, bool done,
 
   if (result != OK)
     {
-      priv->status = s32k3xx_lpi2c_getstatus(priv);
+      uint32_t status = s32k3xx_lpi2c_getstatus(priv);
 
-      if ((priv->status & LPI2C_MSR_ERROR_MASK) != 0)
+      if ((status & LPI2C_MSR_ERROR_MASK) != 0)
         {
-          i2cerr("ERROR: MSR: status: 0x0%" PRIx32 "\n", priv->status);
+          i2cerr("ERROR: MSR: status: 0x0%" PRIx32 "\n", status);
 
           s32k3xx_lpi2c_traceevent(priv, I2CEVENT_ERROR, 0);
 
@@ -878,10 +884,10 @@ static void s32k3xx_txdma_callback(DMACH_HANDLE handle, void *arg, bool done,
           /* Clear the error */
 
           s32k3xx_lpi2c_putreg(priv, S32K3XX_LPI2C_MSR_OFFSET,
-                             (priv->status & (LPI2C_MSR_NDF |
-                                              LPI2C_MSR_ALF |
-                                              LPI2C_MSR_FEF |
-                                              LPI2C_MSR_PLTF)));
+                             (status & (LPI2C_MSR_NDF |
+                                        LPI2C_MSR_ALF |
+                                        LPI2C_MSR_FEF |
+                                        LPI2C_MSR_PLTF)));
 
           if (priv->intstate == INTSTATE_WAITING)
             {
@@ -889,6 +895,7 @@ static void s32k3xx_txdma_callback(DMACH_HANDLE handle, void *arg, bool done,
                * and wake it up
                */
 
+              priv->status = status;
               priv->intstate = INTSTATE_DONE;
               nxsem_post(&priv->sem_isr);
             }
@@ -1979,6 +1986,7 @@ static int s32k3xx_lpi2c_transfer(struct i2c_master_s *dev,
 #ifdef CONFIG_S32K3XX_LPI2C_DMA
   if (priv->rxdma || priv->txdma)
     {
+      priv->intstate = INTSTATE_WAITING;
       s32k3xx_lpi2c_dma_transfer(priv);
     }
 #endif
