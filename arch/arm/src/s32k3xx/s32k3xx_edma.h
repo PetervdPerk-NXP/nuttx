@@ -340,6 +340,8 @@ void s32k3xx_dmach_free(DMACH_HANDLE handle);
 int s32k3xx_dmach_xfrsetup(DMACH_HANDLE *handle,
                            const struct s32k3xx_edma_xfrconfig_s *config);
 
+int s32k3xx_edma_check(DMACH_HANDLE rxdma, DMACH_HANDLE txdma);
+
 /****************************************************************************
  * Name: s32k3xx_dmach_start
  *

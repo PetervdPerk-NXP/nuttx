@@ -264,7 +264,7 @@ void s32k3xx_lowsetup(void)
    * control is enabled.
    */
 
-  s32k3xx_pinconfig(PIN_LPUART4_RX);
+  //s32k3xx_pinconfig(PIN_LPUART4_RX);
   s32k3xx_pinconfig(PIN_LPUART4_TX);
 #ifdef CONFIG_LPUART4_OFLOWCONTROL
   s32k3xx_pinconfig(PIN_LPUART4_CTS);

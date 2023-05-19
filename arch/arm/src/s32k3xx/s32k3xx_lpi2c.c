@@ -60,6 +60,8 @@
 
 #ifdef CONFIG_S32K3XX_LPI2C
 
+static uint32_t magic_count = 0;
+
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
@@ -599,6 +601,9 @@ static inline int
       s32k3xx_lpi2c_putreg(priv, S32K3XX_LPI2C_SIER_OFFSET, 0);
     }
 
+    
+      i2cerr("#%p EDMA Check %i %i\n", priv, s32k3xx_edma_check(priv->rxdma, priv->txdma), magic_count);
+    
   leave_critical_section(flags);
   return ret;
 }
@@ -807,7 +812,7 @@ static inline void
 static void s32k3xx_rxdma_callback(DMACH_HANDLE handle, void *arg, bool done,
                               int result)
 {
-  struct s32k3xx_lpi2c_priv_s *priv = (struct s32k3xx_lpi2c_priv_s *)arg;
+  volatile struct s32k3xx_lpi2c_priv_s *priv = (struct s32k3xx_lpi2c_priv_s *)arg;
 
   s32k3xx_lpi2c_modifyreg(priv, S32K3XX_LPI2C_MIER_OFFSET, 0,
                               LPI2C_MIER_SDIE);
@@ -818,7 +823,7 @@ static void s32k3xx_rxdma_callback(DMACH_HANDLE handle, void *arg, bool done,
 
       if ((status & LPI2C_MSR_ERROR_MASK) != 0)
         {
-          i2cerr("ERROR: MSR: status: 0x0%" PRIx32 "\n", status);
+          i2cerr("RX ERROR: MSR: status: 0x0%" PRIx32 " %d\n", status, magic_count++);
 
           s32k3xx_lpi2c_traceevent(priv, I2CEVENT_ERROR, 0);
 
@@ -872,7 +877,7 @@ static void s32k3xx_txdma_callback(DMACH_HANDLE handle, void *arg, bool done,
 
       if ((status & LPI2C_MSR_ERROR_MASK) != 0)
         {
-          i2cerr("ERROR: MSR: status: 0x0%" PRIx32 "\n", status);
+          i2cerr("TX ERROR: MSR: status: 0x0%" PRIx32 " %d\n", status, magic_count++);
 
           s32k3xx_lpi2c_traceevent(priv, I2CEVENT_ERROR, 0);
 
@@ -1317,30 +1322,47 @@ static int s32k3xx_lpi2c_isr_process(struct s32k3xx_lpi2c_priv_s *priv)
       if (current_status & LPI2C_MSR_ERROR_MASK)
         {
           s32k3xx_lpi2c_traceevent(priv, I2CEVENT_ERROR, 0);
+  /* Disable Interrupts */
 
-          /* Shutdown DMA */
-
-          if (priv->rxdma != NULL)
-            {
-              s32k3xx_dmach_stop(priv->rxdma);
-            }
-
-          if (priv->txdma != NULL)
-            {
-               s32k3xx_dmach_stop(priv->txdma);
-            }
+  s32k3xx_lpi2c_modifyreg(priv, S32K3XX_LPI2C_MIER_OFFSET,
+                            LPI2C_MIER_RDIE | LPI2C_MIER_TDIE, 0);
 
           /* Clear the TX and RX FIFOs */
 
           s32k3xx_lpi2c_modifyreg(priv, S32K3XX_LPI2C_MCR_OFFSET, 0,
                                 LPI2C_MCR_RTF | LPI2C_MCR_RRF);
 
+          
+
+          /* Shutdown DMA */
+
+          if (priv->txdma != NULL)
+            {
+          i2cerr("ISR TX DMAC STOP %d \n", magic_count++);
+               s32k3xx_dmach_stop(priv->txdma);
+            }
+          else
+            {
+          i2cerr("ISR TX IS NULL\n");
+            }
+
+          if (priv->rxdma != NULL)
+            {
+          i2cerr("ISR RX DMAC STOP %d \n", magic_count++);
+              s32k3xx_dmach_stop(priv->rxdma);
+            }
+          else
+            {
+          i2cerr("ISR RX IS NULL\n");
+            }
+            
           /* Clear the error */
 
           s32k3xx_lpi2c_putreg(priv, S32K3XX_LPI2C_MSR_OFFSET,
                             (current_status & (LPI2C_MSR_NDF |
                                                LPI2C_MSR_ALF |
                                                LPI2C_MSR_FEF)));
+
 
           /* Return the full error status */
 
@@ -1550,6 +1572,29 @@ static int s32k3xx_lpi2c_isr_process(struct s32k3xx_lpi2c_priv_s *priv)
 
       s32k3xx_lpi2c_modifyreg(priv, S32K3XX_LPI2C_MCR_OFFSET, 0,
                             LPI2C_MCR_RTF | LPI2C_MCR_RRF);
+      
+      
+          /* Shutdown DMA */
+
+          if (priv->txdma != NULL)
+            {
+          i2cerr("2 ISR TX DMAC STOP %d \n", magic_count++);
+               s32k3xx_dmach_stop(priv->txdma);
+            }
+          else
+            {
+          i2cerr("2 ISR TX IS NULL\n");
+            }
+
+          if (priv->rxdma != NULL)
+            {
+          i2cerr("2 ISR RX DMAC STOP %d \n", magic_count++);
+              s32k3xx_dmach_stop(priv->rxdma);
+            }
+          else
+            {
+          i2cerr("2 ISR RX IS NULL\n");
+            }
 
       /* Clear the error */
 
@@ -1861,12 +1906,15 @@ static int s32k3xx_lpi2c_form_command_list(struct s32k3xx_lpi2c_priv_s
  ****************************************************************************/
 
 #ifdef CONFIG_S32K3XX_LPI2C_DMA
+
+
 static int s32k3xx_lpi2c_dma_transfer(struct s32k3xx_lpi2c_priv_s *priv)
 {
   int m;
   int ntotcmds = 0;
   int ncmds = 0;
   uint16_t *ccmnd = NULL;
+      i2cerr("#%p EDMA Check %i %i\n", priv, s32k3xx_edma_check(priv->rxdma, priv->txdma), magic_count);
 
   /* Disable Interrupts */
 
@@ -1996,11 +2044,13 @@ static int s32k3xx_lpi2c_transfer(struct i2c_master_s *dev,
 #ifdef CONFIG_S32K3XX_LPI2C_DMA
       if (priv->rxdma != NULL)
         {
+          i2cerr("Transfer RX DMAC STOP PRIx32 \n", priv->rxdma);
           s32k3xx_dmach_stop(priv->rxdma);
         }
 
       if (priv->txdma != NULL)
         {
+          i2cerr("Transfer TX DMAC STOP PRIx32 \n", priv->txdma);
           s32k3xx_dmach_stop(priv->txdma);
         }
 
@@ -2027,7 +2077,7 @@ static int s32k3xx_lpi2c_transfer(struct i2c_master_s *dev,
         {
           /* Acknowledge Failure */
 
-          i2cerr("Ack failure\n");
+          i2cerr("Ack failure %d \n", magic_count++);
           ret = -ENXIO;
         }
       else

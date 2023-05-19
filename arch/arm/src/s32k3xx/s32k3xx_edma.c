@@ -488,6 +488,8 @@ static struct s32k3xx_edmatcd_s *s32k3xx_tcd_alloc(void)
 }
 #endif
 
+
+
 /****************************************************************************
  * Name: s32k3xx_tcd_free
  *
@@ -752,8 +754,12 @@ static void s32k3xx_dmaterminate(struct s32k3xx_dmach_s *dmach, int result)
 
 #if CONFIG_S32K3XX_EDMA_NTCD > 0
   /* Return all allocated TCDs to the free list */
+  
+  tcd = dmach->head;
+  dmach->head = NULL;
+  dmach->tail = NULL;
 
-  for (tcd = dmach->head; tcd != NULL; tcd = next)
+  for (; tcd != NULL; tcd = next)
     {
       /* If channel looped to itself we are done
        * if not continue to free tcds in chain
@@ -761,6 +767,7 @@ static void s32k3xx_dmaterminate(struct s32k3xx_dmach_s *dmach, int result)
 
        next = dmach->flags & EDMA_CONFIG_LOOPDEST ?
               NULL : (struct s32k3xx_edmatcd_s *)tcd->dlastsga;
+       tcd->dlastsga = NULL;
 
        s32k3xx_tcd_free(tcd);
     }
@@ -1357,6 +1364,18 @@ int s32k3xx_dmach_xfrsetup(DMACH_HANDLE *handle,
 
   dmach->state = S32K3XX_DMA_CONFIGURED;
   return OK;
+}
+
+int s32k3xx_edma_check(DMACH_HANDLE rxdma, DMACH_HANDLE txdma)
+{
+  struct s32k3xx_dmach_s *dmach = (struct s32k3xx_dmach_s *)rxdma;
+  struct s32k3xx_dmach_s *dmach2 = (struct s32k3xx_dmach_s *)txdma;
+  
+  if (dmach->head == NULL && dmach2->head == NULL) {
+      return OK;
+  }
+
+  return -1;
 }
 
 /****************************************************************************

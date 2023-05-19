@@ -170,7 +170,7 @@
 #define S32K3XX_ADC_STAW2R_OFFSET         (0x038c) /* Self-Test Analog Watchdog S2 Register (STAW2R) */
 #define S32K3XX_ADC_STAW4R_OFFSET         (0x0394) /* Self-Test Analog Watchdog C0 Register (STAW4R) */
 #define S32K3XX_ADC_STAW5R_OFFSET         (0x0398) /* Self-Test Analog Watchdog C Register (STAW5R) */
-#define S32K3XX_ADC_AMSIO_OFFSET          (0x039c) /* Analog Miscellaneous In/Out Register (AMSIO) */ 
+#define S32K3XX_ADC_AMSIO_OFFSET          (0x039c) /* Analog Miscellaneous In/Out Register (AMSIO) */
 #define S32K3XX_ADC_CALBISTREG_OFFSET     (0x03a0) /* Control and Calibration Status Register (CALBISTREG) */
 #define S32K3XX_ADC_OFSGNUSR_OFFSET       (0x03a8) /* Offset and Gain User Register (OFSGNUSR) */
 #define S32K3XX_ADC_CAL2_OFFSET           (0x03b4) /* Calibration Value 2 (CAL2) */
@@ -880,7 +880,7 @@
 /* Precision Input n Conversion Data Register (PCDRn) */
 
 #define ADC_PCDR_CDATA_SHIFT              (0)       /* Bits 0-15: Conversion Data (CDATA) */
-#define ADC_PCDR_CDATA_MASK               (0xff << ADC_PCDR_CDATA_SHIFT)
+#define ADC_PCDR_CDATA_MASK               (0xffff << ADC_PCDR_CDATA_SHIFT)
 #define ADC_PCDR_RESULT_SHIFT             (16)      /* Bits 16-17: Conversion Data Type (RESULT) */
 #define ADC_PCDR_RESULT_MASK              (0x03 << ADC_PCDR_RESULT_SHIFT)
 #  define ADC_PCDR_RESULT_NORM            (0x00 << ADC_PCDR_RESULT_MASK) /* Normal Trigger */
@@ -894,7 +894,7 @@
 /* Standard Input n Conversion Data Register (ICDRn) */
 
 #define ADC_ICDR_CDATA_SHIFT              (0)       /* Bits 0-15: Conversion Data (CDATA) */
-#define ADC_ICDR_CDATA_MASK               (0xff << ADC_ICDR_CDATA_SHIFT)
+#define ADC_ICDR_CDATA_MASK               (0xffff << ADC_ICDR_CDATA_SHIFT)
 #define ADC_ICDR_RESULT_SHIFT             (16)      /* Bits 16-17: Conversion Data Type (RESULT) */
 #define ADC_ICDR_RESULT_MASK              (0x03 << ADC_ICDR_RESULT_SHIFT)
 #  define ADC_ICDR_RESULT_NORM            (0x00 << ADC_ICDR_RESULT_MASK) /* Normal Trigger */
@@ -908,7 +908,7 @@
 /* External Input n Conversion Data Register (ECDRn) */
 
 #define ADC_ECDR_CDATA_SHIFT              (0)       /* Bits 0-15: Conversion Data (CDATA) */
-#define ADC_ECDR_CDATA_MASK               (0xff << ADC_ECDR_CDATA_SHIFT)
+#define ADC_ECDR_CDATA_MASK               (0xffff << ADC_ECDR_CDATA_SHIFT)
 #define ADC_ECDR_RESULT_SHIFT             (16)      /* Bits 16-17: Conversion Data Type (RESULT) */
 #define ADC_ECDR_RESULT_MASK              (0x03 << ADC_ECDR_RESULT_SHIFT)
 #  define ADC_ECDR_RESULT_NORM            (0x00 << ADC_ECDR_RESULT_SHIFT) /* Normal Trigger */
