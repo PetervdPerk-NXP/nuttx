@@ -120,6 +120,14 @@ const struct peripheral_clock_config_s g_peripheral_clockconfig0[] =
     .clkgate = false,
 #endif
   },
+  {
+    .clkname = DMAMUX0_CLK,
+#ifdef CONFIG_S32K1XX_EDMA
+    .clkgate = true,
+#else
+    .clkgate = false,
+#endif
+  },
 };
 
 unsigned int const num_of_peripheral_clocks_0 =

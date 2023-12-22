@@ -1249,6 +1249,7 @@ void s32k1xx_dmasample(DMACH_HANDLE handle, struct s32k1xx_dmaregs_s *regs)
   uintptr_t regaddr;
   unsigned int chan;
   irqstate_t flags;
+  uint32_t base;
 
   DEBUGASSERT(dmach != NULL && regs != NULL);
   chan           = dmach->chan;
