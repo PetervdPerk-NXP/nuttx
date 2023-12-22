@@ -1232,6 +1232,24 @@ unsigned int s32k1xx_dmach_getcount(DMACH_HANDLE *handle)
 }
 
 /****************************************************************************
+ * Name: s32k3xx_dmach_idle
+ *
+ * Description:
+ *   This function checks if the dma is idle
+ *
+ * Returned Value:
+ *   0  - if idle
+ *   !0 - not
+ *
+ ****************************************************************************/
+
+unsigned int s32k1xx_dmach_idle(DMACH_HANDLE handle)
+{
+  struct s32k1xx_dmach_s *dmach = (struct s32k1xx_dmach_s *)handle;
+  return dmach->state == S32K1XX_DMA_IDLE ? 0 : -1;
+}
+
+/****************************************************************************
  * Name: s32k1xx_dmasample
  *
  * Description:
